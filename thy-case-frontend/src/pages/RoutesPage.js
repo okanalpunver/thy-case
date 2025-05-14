@@ -84,8 +84,6 @@ export default function RoutesPage() {
 
   return (
     <Box>
-      {globalError && <Alert severity="error">{globalError}</Alert>}
-
       <Box display="flex" gap={2} mb={3}>
         <FormControl error={!!errors.originId} sx={{ minWidth: 180 }}>
           <InputLabel>Origin</InputLabel>
@@ -199,8 +197,7 @@ export default function RoutesPage() {
                 >
                   <Box>
                     <Typography variant="body1">
-                      {routes[selectedIdx].slice(-1)[0].destinationName} (
-                      {routes[selectedIdx].slice(-1)[0].destinationCode})
+                      {routes[selectedIdx].slice(-1)[0].destinationName}
                     </Typography>
                   </Box>
                 </StepLabel>

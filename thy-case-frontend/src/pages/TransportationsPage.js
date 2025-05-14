@@ -11,7 +11,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Alert,
 } from "@mui/material";
 import api from "../Api";
 
@@ -29,7 +28,6 @@ export default function TransportationsPage() {
   });
 
   const [errors, setErrors] = useState({});
-  const [globalError, setGlobalError] = useState("");
 
   useEffect(() => {
     api.get("/api/transportations").then((r) => setData(r.data));
@@ -63,12 +61,10 @@ export default function TransportationsPage() {
       operatingDays: [],
     });
     setErrors({});
-    setGlobalError("");
   };
 
   const submit = () => {
     if (!validate()) return;
-    setGlobalError("");
     const payload = {
       originId: form.originId,
       destinationId: form.destinationId,
@@ -78,16 +74,12 @@ export default function TransportationsPage() {
     const req = form.id
       ? api.put(`/api/transportations/${form.id}`, payload)
       : api.post("/api/transportations", payload);
-    req
-      .then(() => {
-        api.get("/api/transportations").then((r) => {
-          setData(r.data);
-        });
-        reset();
-      })
-      .catch((err) => {
-        setGlobalError(err.response?.data?.message || "Error");
+    req.then(() => {
+      api.get("/api/transportations").then((r) => {
+        setData(r.data);
       });
+      reset();
+    });
   };
 
   const edit = (t) => {
@@ -108,7 +100,6 @@ export default function TransportationsPage() {
 
   return (
     <Box>
-      {globalError && <Alert severity="error">{globalError}</Alert>}
       <Box display="flex" gap={2} mb={2}>
         <FormControl error={!!errors.originId}>
           <InputLabel>Origin</InputLabel>

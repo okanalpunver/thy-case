@@ -12,7 +12,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Alert,
 } from "@mui/material";
 import api from "../Api";
 
@@ -28,7 +27,6 @@ export default function LocationsPage() {
     locationCode: "",
   });
   const [errors, setErrors] = useState({});
-  const [globalError, setGlobalError] = useState("");
 
   useEffect(() => {
     api.get("/api/locations").then((r) => setLocations(r.data));
@@ -66,12 +64,10 @@ export default function LocationsPage() {
       locationCode: "",
     });
     setErrors({});
-    setGlobalError("");
   };
 
   const submit = () => {
     if (!validate()) return;
-    setGlobalError("");
     const payload = {
       name: form.name,
       countryIso2: form.countryIso2,
@@ -81,14 +77,10 @@ export default function LocationsPage() {
     const req = form.id
       ? api.put(`/api/locations/${form.id}`, payload)
       : api.post("/api/locations", payload);
-    req
-      .then(() => {
-        api.get("/api/locations").then((r) => setLocations(r.data));
-        reset();
-      })
-      .catch((err) => {
-        setGlobalError(err.response?.data?.message || "Error");
-      });
+    req.then(() => {
+      api.get("/api/locations").then((r) => setLocations(r.data));
+      reset();
+    });
   };
 
   const edit = (loc) => {
@@ -109,7 +101,6 @@ export default function LocationsPage() {
 
   return (
     <Box>
-      {globalError && <Alert severity="error">{globalError}</Alert>}
       <Box display="flex" gap={2} mb={2}>
         <TextField
           label="Name"
