@@ -22,14 +22,12 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public List<List<TransportationDto>> findRoutes(RoutesRequestDto req) {
-        int day = req.date.getDayOfWeek().getValue(); // 1=Mon … 7=Sun
+        int day = req.date.getDayOfWeek().getValue();
         Long originId = req.originId;
         Long destinationId = req.destinationId;
 
-        // 1) Fetch all transportations operating on that day
         List<Transportation> all = repo.findByOperatingDay(day);
 
-        // 2) Partition into flights vs transfers by origin location
         Map<Long, List<Transportation>> flightsByOrigin = new HashMap<>();
         Map<Long, List<Transportation>> transfersByOrigin = new HashMap<>();
         for (Transportation transportation : all) {
@@ -40,12 +38,12 @@ public class RouteServiceImpl implements RouteService {
 
         List<List<TransportationDto>> routes = new ArrayList<>();
 
-        // 3) 1-leg: direct flights originId→destinationId
+        // direct flights
         flightsByOrigin.getOrDefault(originId, List.of()).stream()
                 .filter(flight -> flight.getDestination().getId().equals(destinationId))
                 .forEach(flight -> routes.add(toDtoList(List.of(flight))));
 
-        // 4) 2-leg: transfer → flight
+        // transfer → flight
         for (Transportation transfer : transfersByOrigin.getOrDefault(originId, List.of())) {
             Long transferDestinationId = transfer.getDestination().getId();
             flightsByOrigin.getOrDefault(transferDestinationId, List.of()).stream()
@@ -53,7 +51,7 @@ public class RouteServiceImpl implements RouteService {
                     .forEach(flight -> routes.add(toDtoList(List.of(transfer, flight))));
         }
 
-        // 5) 2-leg: flight → transfer
+        // flight → transfer
         for (Transportation flight : flightsByOrigin.getOrDefault(originId, List.of())) {
             Long flightDestinationId = flight.getDestination().getId();
             transfersByOrigin.getOrDefault(flightDestinationId, List.of()).stream()
@@ -61,7 +59,7 @@ public class RouteServiceImpl implements RouteService {
                     .forEach(transfer -> routes.add(toDtoList(List.of(flight, transfer))));
         }
 
-        // 6) 3-leg: transfer → flight → transfer
+        // transfer → flight → transfer
         for (Transportation transfer : transfersByOrigin.getOrDefault(originId, List.of())) {
             Long transferDestinationId = transfer.getDestination().getId();
             for (Transportation flight : flightsByOrigin.getOrDefault(transferDestinationId, List.of())) {
