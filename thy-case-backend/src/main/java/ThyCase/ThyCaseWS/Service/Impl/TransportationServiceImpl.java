@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,13 +35,28 @@ public class TransportationServiceImpl implements TransportationService {
             throw new IllegalArgumentException("Origin and destination must be different");
         }
 
-        Transportation entity = new Transportation();
-        entity.setOrigin(origin);
-        entity.setDestination(destination);
-        entity.setType(Transportation.TransportType.valueOf(dto.type));
+        Optional<Transportation> existingTransportation = repo.findByOriginAndDestinationAndType(origin, destination, Transportation.TransportType.fromString(dto.type));
+        Transportation entity;
 
-        Transportation saved = repo.save(entity);
-        return mapper.toDto(saved);
+        if (existingTransportation.isPresent()) {
+            Transportation transportation = existingTransportation.get();
+            List<Integer> toBeAddedDays = dto.operatingDays;
+            List<Integer> currentDays = transportation.getOperatingDays();
+            Set<Integer> uniqueDays = new LinkedHashSet<>(currentDays);
+            uniqueDays.addAll(toBeAddedDays);
+            transportation.setOperatingDays(new ArrayList<>(uniqueDays));
+            entity = transportation;
+        } else {
+            entity = new Transportation();
+            entity.setOrigin(origin);
+            entity.setDestination(destination);
+            entity.setType(Transportation.TransportType.valueOf(dto.type));
+            entity.setOperatingDays(dto.operatingDays);
+        }
+
+        repo.save(entity);
+        return mapper.toDto(entity);
+
     }
 
     @Override
@@ -57,6 +72,7 @@ public class TransportationServiceImpl implements TransportationService {
         existing.setOrigin(origin);
         existing.setDestination(destination);
         existing.setType(Transportation.TransportType.valueOf(dto.type));
+        existing.setOperatingDays(dto.operatingDays);
 
         return mapper.toDto(repo.save(existing));
     }
