@@ -9,7 +9,7 @@ import org.mapstruct.*;
 
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
-@Mapper(componentModel = "spring", uses = { CountryMapper.class, CityMapper.class })
+@Mapper(componentModel = "spring")
 public interface LocationMapper {
 
     @Mapping(target = "countryIso2", source = "country.iso2")
